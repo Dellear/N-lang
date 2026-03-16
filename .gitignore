@@ -9,6 +9,7 @@ dist/
 
 # 环境变量
 .env
+.env.*.local
 .env.local
 
 # 编辑器
