@@ -1,0 +1,291 @@
+// ============================================================
+// 1. 基本类型 & 运算符
+// ============================================================
+print("--- 基本类型 ---")
+print(42, 3.14, "hello", true, false, null)
+print("算术:", 1+2, 10-3, 4*5, 9/2, 10%3)
+print("比较:", 1==1, 1!=2, 3<5, 5>3, 3<=3, 4>=4)
+print("逻辑:", true&&false, false||true, !true)
+print("一元负:", -42)
+print("字符串拼接:", "Hello" + " " + "World")
+print("数字转字符串拼接:", "val=" + str(99))
+
+// ============================================================
+// 2. 变量 & 赋值
+// ============================================================
+print("--- 变量 ---")
+let x = 5
+x = x * 2
+print("x:", x)
+
+let arr = [10, 20, 30]
+arr[1] = 99
+print("索引赋值:", arr)
+
+// ============================================================
+// 3. if / else（嵌套）
+// ============================================================
+print("--- if/else ---")
+let score = 85
+if score >= 90 {
+  print("优秀")
+} else {
+  if score >= 60 {
+    print("及格")
+  } else {
+    print("不及格")
+  }
+}
+
+// ============================================================
+// 4. while + break/continue
+// ============================================================
+print("--- while break/continue ---")
+let i = 0
+while i < 10 {
+  i = i + 1
+  if i == 3 { continue }
+  if i == 6 { break }
+  print("i =", i)
+}
+
+// ============================================================
+// 5. for..in 数组 & 字符串
+// ============================================================
+print("--- for..in ---")
+for n in [1, 2, 3, 4, 5] {
+  if n == 3 { continue }
+  if n == 5 { break }
+  print("n =", n)
+}
+for ch in "abc" {
+  print("ch =", ch)
+}
+
+// ============================================================
+// 6. 函数 & return
+// ============================================================
+print("--- 函数 ---")
+fn add(a, b) {
+  return a + b
+}
+print("add:", add(3, 4))
+
+fn max2(a, b) {
+  if a > b { return a }
+  return b
+}
+print("max2:", max2(7, 3))
+
+// 提前 return
+fn firstPositive(arr) {
+  for x in arr {
+    if x > 0 { return x }
+  }
+  return null
+}
+print("firstPositive:", firstPositive([-1, -2, 5, 3]))
+
+// ============================================================
+// 7. 递归
+// ============================================================
+print("--- 递归 ---")
+fn fib(n) {
+  if n <= 1 { return n }
+  return fib(n-1) + fib(n-2)
+}
+print("fib(8):", fib(8))
+
+fn factorial(n) {
+  if n <= 1 { return 1 }
+  return n * factorial(n-1)
+}
+print("factorial(6):", factorial(6))
+
+// ============================================================
+// 8. 闭包 & lambda
+// ============================================================
+print("--- 闭包 ---")
+fn makeCounter() {
+  let count = 0
+  return fn() {
+    count = count + 1
+    return count
+  }
+}
+let counter = makeCounter()
+print("counter:", counter(), counter(), counter())
+
+fn makeAdder(n) {
+  return fn(x) { return x + n }
+}
+let add5 = makeAdder(5)
+print("add5(10):", add5(10))
+
+// ============================================================
+// 9. 原有字符串方法
+// ============================================================
+print("--- 字符串方法 ---")
+let s = "  Hello World  "
+print("len:", s.len)
+print("upper:", s.upper())
+print("lower:", s.lower())
+print("trim:", s.trim())
+print("split:", "a,b,c".split(","))
+print("includes:", "hello".includes("ell"))
+print("startsWith:", "hello".startsWith("he"))
+print("endsWith:", "hello".endsWith("lo"))
+print("replace:", "hello".replace("l", "r"))
+print("slice:", "hello".slice(1, 3))
+print("indexOf:", "hello".indexOf("l"))
+print("repeat:", "ab".repeat(3))
+print("padStart:", "5".padStart(4, "0"))
+print("padEnd:", "hi".padEnd(5, "."))
+
+// ============================================================
+// 10. 原有数组方法
+// ============================================================
+print("--- 数组方法 ---")
+let nums = [1, 2, 3, 4, 5]
+print("len:", nums.len)
+print("map:", nums.map(fn(x) { return x * 2 }))
+print("filter:", nums.filter(fn(x) { return x % 2 == 0 }))
+print("reduce:", nums.reduce(fn(acc, x) { return acc + x }, 0))
+print("find:", nums.find(fn(x) { return x > 3 }))
+print("every>0:", nums.every(fn(x) { return x > 0 }))
+print("some>4:", nums.some(fn(x) { return x > 4 }))
+print("includes:", nums.includes(3))
+print("indexOf:", nums.indexOf(4))
+print("join:", nums.join("-"))
+print("slice:", nums.slice(1, 3))
+
+let mut = [3, 1, 2]
+mut.push(4)
+print("push:", mut)
+print("pop:", mut.pop(), mut)
+mut.unshift(0)
+print("unshift:", mut)
+print("shift:", mut.shift(), mut)
+mut.reverse()
+print("reverse:", mut)
+
+// 新数组方法
+print("sort:", [3,1,4,1,5].sort())
+print("sort desc:", [3,1,4].sort(fn(a,b){ return b-a }))
+print("concat:", [1,2].concat([3,4]))
+print("flat:", [[1,2],[3,[4,5]]].flat())
+print("flat(2):", [[1,2],[3,[4,5]]].flat(2))
+
+// 链式
+let result = [1,2,3,4,5].filter(fn(x){ return x%2!=0 }).map(fn(x){ return x*x })
+print("链式 filter+map:", result)
+
+// ============================================================
+// 11. 对象
+// ============================================================
+print("--- 对象 ---")
+let person = { name: "Alice", age: 30 }
+print("对象:", person)
+print("属性访问:", person.name, person.age)
+person.age = 31
+print("属性赋值:", person.age)
+let k = "name"
+print("索引访问:", person[k])
+print("keys:", person.keys())
+print("values:", person.values())
+print("entries:", person.entries())
+print("has:", person.has("name"), person.has("x"))
+person.delete("age")
+print("delete后:", person)
+
+// 嵌套对象
+let company = { name: "Acme", address: { city: "NYC", zip: "10001" } }
+print("嵌套:", company.address.city)
+
+// ============================================================
+// 12. 模板字符串
+// ============================================================
+print("--- 模板字符串 ---")
+let who = "World"
+print(`Hello, ${who}!`)
+print(`1+1=${1+1}, 2*3=${2*3}`)
+let a = 10
+print(`a=${a}, a*2=${a*2}, a>5=${a>5}`)
+
+// ============================================================
+// 13. 三元运算符
+// ============================================================
+print("--- 三元 ---")
+print(1 > 0 ? "yes" : "no")
+print(false ? "A" : true ? "B" : "C")
+let age = 20
+print(`${age >= 18 ? "adult" : "minor"}`)
+
+// ============================================================
+// 14. typeof
+// ============================================================
+print("--- typeof ---")
+print(typeof 42)
+print(typeof "hi")
+print(typeof true)
+print(typeof null)
+print(typeof [1,2])
+print(typeof { a: 1 })
+fn dummy() { return 0 }
+print(typeof dummy)
+
+// ============================================================
+// 15. Math 内置
+// ============================================================
+print("--- Math ---")
+print("floor:", floor(3.7))
+print("ceil:", ceil(3.2))
+print("round:", round(3.5))
+print("abs:", abs(-9))
+print("sqrt:", sqrt(16))
+print("pow:", pow(2, 10))
+print("max:", max(1, 5, 3))
+print("min:", min(1, 5, 3))
+print("Math.PI:", Math.PI)
+print("Math.E:", Math.E)
+print("Math.floor:", Math.floor(2.9))
+print("Math.pow:", Math.pow(3, 3))
+
+// ============================================================
+// 16. 类型转换
+// ============================================================
+print("--- 类型转换 ---")
+print("num:", num("3.14"))
+print("str:", str(42))
+print("bool:", bool(0), bool(1), bool(""), bool("x"))
+
+// ============================================================
+// 17. range
+// ============================================================
+print("--- range ---")
+print("range(0,5):", range(0, 5))
+print("range(2,8):", range(2, 8))
+
+// ============================================================
+// 18. Date 内置对象
+// ============================================================
+print("--- Date ---")
+let now = Date()
+print(typeof now)
+print("timestamp>0:", now.timestamp > 0)
+print("format:", now.format())
+
+let dt1 = Date("2026-03-13T00:00:00Z")
+let dt2 = Date("2026-03-14T00:00:00Z")
+print("compare:", dt1 < dt2)
+print("diff:", dt2 - dt1)
+print("equal:", dt1 == Date("2026-03-13T00:00:00Z"))
+
+let dt3 = Date(Date.now())
+print("parts:", dt3.year >= 2026, dt3.month >= 1, dt3.day >= 1)
+
+let dt4 = Date("2026-03-13T08:00:00Z")
+dt4.addDays(2)
+print("addDays:", dt4.format())
+print("Date.now:", Date.now() > 0)
+print("Date.parse:", Date.parse("2026-03-13T00:00:00Z") > 0)

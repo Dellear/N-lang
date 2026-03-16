@@ -1,0 +1,12 @@
+{
+  "name": "n-lang",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outfile dist/n.js --target node --minify",
+    "build:exe": "bun build src/index.ts --compile --outfile dist/n --minify"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
+  }
+}
