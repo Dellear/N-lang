@@ -1,0 +1,19 @@
+export let PI = 3.14159
+
+export fn square(x) {
+  return x * x
+}
+
+export fn add(a, b) {
+  return a + b
+}
+
+export class Vector {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+  magnitude() {
+    return sqrt(this.x * this.x + this.y * this.y)
+  }
+}

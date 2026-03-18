@@ -25,6 +25,25 @@ export function parse(tokens: Token[]): Node {
   function parseStmt(): Node {
     skip()
     const t = peek()
+    if (t.type === TT.IMPORT) {
+      eat(); eat(TT.LBRACE)
+      const names: string[] = []
+      while (peek().type !== TT.RBRACE) {
+        names.push(eat(TT.IDENT).val)
+        if (peek().type === TT.COMMA) eat()
+      }
+      eat(TT.RBRACE); eat(TT.FROM)
+      const path = eat(TT.STR).val
+      return { kind: 'Import', names, path }
+    }
+    if (t.type === TT.EXPORT) {
+      eat()
+      const next = peek()
+      if (next.type !== TT.LET && next.type !== TT.FN && next.type !== TT.CLASS)
+        throw new Error(`export must be followed by let, fn, or class at line ${next.line}`)
+      const stmt = parseStmt()
+      return { kind: 'Export', stmt }
+    }
     if (t.type === TT.LET) {
       eat(); const name = eat(TT.IDENT).val; eat(TT.EQ)
       return { kind: 'Let', name, value: parseExpr() }

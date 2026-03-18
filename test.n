@@ -495,3 +495,30 @@ for i in [1, 2, 3] {
 }
 
 print("--- 异常处理测试完成 ---")
+
+// ============================================================
+// 23. 模块系统 import/export
+// ============================================================
+print("--- 模块系统 ---")
+
+import { PI, square, add, Vector } from "test_module.n"
+
+// 导入变量
+print("PI:", PI)
+
+// 导入函数调用
+print("square(5):", square(5))
+print("add(3,4):", add(3, 4))
+
+// 导入类实例化
+let v = new Vector(3, 4)
+print("v.x:", v.x)
+print("v.y:", v.y)
+print("v.magnitude:", v.magnitude())
+
+// 多次 import 同一模块（验证缓存）
+import { PI, square } from "test_module.n"
+print("cached PI:", PI)
+print("cached square(6):", square(6))
+
+print("--- 模块系统测试完成 ---")

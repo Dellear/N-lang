@@ -1,4 +1,8 @@
 import { Node } from './ast'
+import { readFileSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { lex } from './lexer'
+import { parse } from './parser'
 
 class NArray { constructor(public items: Value[]) {} }
 class NObject { constructor(public props: Map<string, Value>) {} }
@@ -69,8 +73,51 @@ function dateTimestamp(value: Value): number | null {
   return value instanceof NDate ? value.value.getTime() : null
 }
 
-export function interpret(program: Node, env?: Env) {
+const moduleCache = new Map<string, Map<string, Value>>()
+const loadingModules = new Set<string>()
+let currentExports: Map<string, Value> | null = null
+
+export function interpret(program: Node, env?: Env, filePath?: string) {
   const global = env ?? new Env()
+
+  function loadModule(importPath: string, currentFilePath: string): Map<string, Value> {
+    const absolutePath = resolve(dirname(currentFilePath), importPath)
+
+    if (moduleCache.has(absolutePath)) {
+      return moduleCache.get(absolutePath)!
+    }
+
+    if (loadingModules.has(absolutePath)) {
+      throw new Error(`Circular import detected: ${absolutePath}`)
+    }
+
+    loadingModules.add(absolutePath)
+
+    try {
+      const source = readFileSync(absolutePath, 'utf8')
+      const ast = parse(lex(source))
+
+      const moduleEnv = new Env()
+      moduleEnv.def('Math', new NMath())
+      moduleEnv.def('Date', new NDateCtor())
+
+      const savedExports = currentExports
+      currentExports = new Map()
+
+      interpret(ast, moduleEnv, absolutePath)
+
+      const exports = currentExports
+      currentExports = savedExports
+
+      moduleCache.set(absolutePath, exports)
+      loadingModules.delete(absolutePath)
+
+      return exports
+    } catch (e) {
+      loadingModules.delete(absolutePath)
+      throw e
+    }
+  }
 
   function findMethod(klass: NClass | null, name: string): { params: string[]; body: Node[]; env: Env } | null {
     if (!klass) return null
@@ -538,6 +585,27 @@ export function interpret(program: Node, env?: Env) {
           throw new ThrowSignal(caught)
         }
         if (node.finallyBody) for (const s of node.finallyBody) exec(s, env)
+        return null
+      }
+      case 'Export': {
+        const stmt = node.stmt
+        exec(stmt, env)
+        if (currentExports) {
+          const name = stmt.kind === 'Let' ? stmt.name
+            : stmt.kind === 'Fn' ? stmt.name
+            : stmt.kind === 'Class' ? stmt.name
+            : null
+          if (name) currentExports.set(name, env.get(name))
+        }
+        return null
+      }
+      case 'Import': {
+        if (!filePath) throw new Error('import is not supported in REPL mode')
+        const exports = loadModule(node.path, filePath)
+        for (const name of node.names) {
+          if (!exports.has(name)) throw new Error(`Module '${node.path}' does not export '${name}'`)
+          env.def(name, exports.get(name)!)
+        }
         return null
       }
     }

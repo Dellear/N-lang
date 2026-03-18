@@ -31,3 +31,5 @@ export type Node =
   | { kind: 'New'; className: Node; args: Node[] }
   | { kind: 'Throw'; value: Node }
   | { kind: 'Try'; tryBody: Node[]; catchClause: { param: string; body: Node[] } | null; finallyBody: Node[] | null }
+  | { kind: 'Import'; names: string[]; path: string }
+  | { kind: 'Export'; stmt: Node }

@@ -1,13 +1,14 @@
 import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import { createInterface } from 'readline'
 import { lex } from './lexer'
 import { parse } from './parser'
 import { interpret, Env } from './interpreter'
 import { TT } from './lexer'
 
-function run(src: string, env?: Env) {
+function run(src: string, env?: Env, filePath?: string) {
   try {
-    interpret(parse(lex(src)), env)
+    interpret(parse(lex(src)), env, filePath)
   } catch (e: any) {
     console.error('Error:', e.message)
   }
@@ -35,7 +36,7 @@ function isComplete(src: string): boolean {
 
 const file = process.argv[2]
 if (file) {
-  run(readFileSync(file, 'utf8'))
+  run(readFileSync(file, 'utf8'), undefined, resolve(file))
 } else {
   const rl = createInterface({ input: process.stdin, output: process.stdout, prompt: 'N> ' })
   const env = new Env()
