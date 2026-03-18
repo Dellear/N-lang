@@ -72,6 +72,30 @@ export function parse(tokens: Token[]): Node {
     }
     if (t.type === TT.BREAK) { eat(); return { kind: 'Break' } }
     if (t.type === TT.CONTINUE) { eat(); return { kind: 'Continue' } }
+    if (t.type === TT.THROW) {
+      eat()
+      return { kind: 'Throw', value: parseExpr() }
+    }
+    if (t.type === TT.TRY) {
+      eat()
+      const tryBody = parseBlock()
+      skip()
+      let catchClause: { param: string; body: Node[] } | null = null
+      let finallyBody: Node[] | null = null
+      if (peek().type === TT.CATCH) {
+        eat(); eat(TT.LPAREN)
+        const param = eat(TT.IDENT).val
+        eat(TT.RPAREN)
+        catchClause = { param, body: parseBlock() }
+        skip()
+      }
+      if (peek().type === TT.FINALLY) {
+        eat()
+        finallyBody = parseBlock()
+      }
+      if (!catchClause && !finallyBody) throw new Error(`try requires catch or finally at line ${t.line}`)
+      return { kind: 'Try', tryBody, catchClause, finallyBody }
+    }
     if (t.type === TT.IF) {
       eat(); const cond = parseExpr(); const then = parseBlock()
       skip()

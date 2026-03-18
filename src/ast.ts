@@ -29,3 +29,5 @@ export type Node =
   | { kind: 'Null' }
   | { kind: 'Class'; name: string; parent: string | null; methods: { name: string; params: string[]; body: Node[] }[] }
   | { kind: 'New'; className: Node; args: Node[] }
+  | { kind: 'Throw'; value: Node }
+  | { kind: 'Try'; tryBody: Node[]; catchClause: { param: string; body: Node[] } | null; finallyBody: Node[] | null }

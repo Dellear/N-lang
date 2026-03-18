@@ -365,3 +365,133 @@ let bot = new SuperRobot(42, "Optimus", 9000)
 bot.beep()
 bot.greet()
 bot.showPower()
+
+// ============================================================
+// 22. 异常处理 try/catch/finally
+// ============================================================
+print("--- 异常处理 ---")
+
+// 基础 throw/catch
+try {
+  throw "something went wrong"
+} catch (e) {
+  print("Caught:", e)
+}
+
+// catch 参数访问
+try {
+  throw "error message"
+} catch (err) {
+  print("Error was:", err)
+}
+
+// finally 执行（无异常）
+try {
+  print("Try block executed")
+} finally {
+  print("Finally always runs")
+}
+
+// finally 执行（有异常）
+try {
+  throw "oops"
+} catch (e) {
+  print("Caught in catch:", e)
+} finally {
+  print("Finally runs after catch")
+}
+
+// 捕获运行时错误
+try {
+  print(undefinedVariable)
+} catch (e) {
+  print("Caught runtime error:", e)
+}
+
+// 嵌套 try/catch
+try {
+  try {
+    throw "inner error"
+  } catch (e) {
+    print("Inner catch:", e)
+    throw "outer error"
+  }
+} catch (e) {
+  print("Outer catch:", e)
+}
+
+// try/finally（无 catch）
+try {
+  print("Risky operation")
+} finally {
+  print("Cleanup in finally")
+}
+
+// catch 中再次 throw
+try {
+  try {
+    throw "first"
+  } catch (e) {
+    print("Caught first:", e)
+    throw "second"
+  }
+} catch (e) {
+  print("Caught second:", e)
+}
+
+// throw 不同类型的值
+try {
+  throw 42
+} catch (e) {
+  print("Caught number:", e)
+}
+
+try {
+  throw true
+} catch (e) {
+  print("Caught boolean:", e)
+}
+
+// 函数中的异常
+fn riskyFn() {
+  throw "function error"
+}
+
+try {
+  riskyFn()
+} catch (e) {
+  print("Caught from function:", e)
+}
+
+// return 穿透 try/catch
+fn testReturn() {
+  try {
+    return "early return"
+  } catch (e) {
+    print("This won't run")
+  }
+  print("This won't run either")
+}
+print("testReturn:", testReturn())
+
+// break 穿透 try/catch
+for i in [1, 2, 3] {
+  try {
+    if i == 2 { break }
+    print("Loop i:", i)
+  } catch (e) {
+    print("Won't catch break")
+  }
+}
+
+// continue 穿透 try/catch
+for i in [1, 2, 3] {
+  try {
+    if i == 2 { continue }
+    print("Continue i:", i)
+  } catch (e) {
+    print("Won't catch continue")
+  }
+}
+
+print("--- 异常处理测试完成 ---")

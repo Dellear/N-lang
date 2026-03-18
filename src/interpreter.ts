@@ -12,6 +12,7 @@ interface NFunc { params: string[]; body: Node[]; env: Env }
 class ReturnSignal { constructor(public value: Value) {} }
 class BreakSignal {}
 class ContinueSignal {}
+class ThrowSignal { constructor(public value: Value) {} }
 
 export class Env {
   vars = new Map<string, Value>()
@@ -501,6 +502,43 @@ export function interpret(program: Node, env?: Env) {
         const callee = exec(node.callee, env)
         const args2 = node.args.map(a => exec(a, env))
         return callFn(callee as NFunc, args2)
+      }
+      case 'Throw': throw new ThrowSignal(exec(node.value, env))
+      case 'Try': {
+        let caught: Value | undefined
+        let rethrow: unknown | undefined
+        try {
+          for (const s of node.tryBody) exec(s, env)
+        } catch (e) {
+          if (e instanceof ReturnSignal || e instanceof BreakSignal || e instanceof ContinueSignal) {
+            rethrow = e
+          } else if (e instanceof ThrowSignal) {
+            caught = e.value
+          } else if (e instanceof Error) {
+            caught = e.message
+          } else {
+            caught = String(e)
+          }
+        }
+        if (rethrow !== undefined) {
+          if (node.finallyBody) for (const s of node.finallyBody) exec(s, env)
+          throw rethrow
+        }
+        if (caught !== undefined && node.catchClause) {
+          const local = new Env(env)
+          local.def(node.catchClause.param, caught)
+          try {
+            for (const s of node.catchClause.body) exec(s, local)
+          } catch (e2) {
+            if (node.finallyBody) for (const s of node.finallyBody) exec(s, env)
+            throw e2
+          }
+        } else if (caught !== undefined) {
+          if (node.finallyBody) for (const s of node.finallyBody) exec(s, env)
+          throw new ThrowSignal(caught)
+        }
+        if (node.finallyBody) for (const s of node.finallyBody) exec(s, env)
+        return null
       }
     }
   }

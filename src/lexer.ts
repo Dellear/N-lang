@@ -3,6 +3,7 @@ export enum TT {
   LET, FN, RETURN, IF, ELSE, WHILE, FOR, IN,
   BREAK, CONTINUE, TYPEOF,
   CLASS, EXTENDS, NEW, SUPER, THIS,
+  TRY, CATCH, FINALLY, THROW,
   PLUS, MINUS, STAR, SLASH, MOD,
   EQ, EQEQ, NEQ, LT, GT, LTE, GTE,
   BANG, AND, OR,
@@ -21,6 +22,7 @@ KW['if'] = TT.IF; KW['else'] = TT.ELSE; KW['while'] = TT.WHILE
 KW['for'] = TT.FOR; KW['in'] = TT.IN
 KW['break'] = TT.BREAK; KW['continue'] = TT.CONTINUE; KW['typeof'] = TT.TYPEOF
 KW['class'] = TT.CLASS; KW['extends'] = TT.EXTENDS; KW['new'] = TT.NEW; KW['super'] = TT.SUPER; KW['this'] = TT.THIS
+KW['try'] = TT.TRY; KW['catch'] = TT.CATCH; KW['finally'] = TT.FINALLY; KW['throw'] = TT.THROW
 KW['true'] = TT.TRUE; KW['false'] = TT.FALSE; KW['null'] = TT.NULL
 
 export function lex(src: string): Token[] {
