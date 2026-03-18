@@ -27,3 +27,5 @@ export type Node =
   | { kind: 'Template'; parts: (string | Node)[] }
   | { kind: 'Lambda'; params: string[]; body: Node[] }
   | { kind: 'Null' }
+  | { kind: 'Class'; name: string; parent: string | null; methods: { name: string; params: string[]; body: Node[] }[] }
+  | { kind: 'New'; className: Node; args: Node[] }

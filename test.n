@@ -289,3 +289,79 @@ dt4.addDays(2)
 print("addDays:", dt4.format())
 print("Date.now:", Date.now() > 0)
 print("Date.parse:", Date.parse("2026-03-13T00:00:00Z") > 0)
+
+// ============================================================
+// 19. Class 基础
+// ============================================================
+print("--- Class 基础 ---")
+class Animal {
+  constructor(name, sound) {
+    this.name = name
+    this.sound = sound
+  }
+  speak() {
+    print(this.name + " says " + this.sound)
+  }
+}
+
+let cat = new Animal("Kitty", "meow")
+cat.speak()
+print("cat.name:", cat.name)
+print("typeof Animal:", typeof Animal)
+print("typeof cat:", typeof cat)
+
+// ============================================================
+// 20. Class 继承
+// ============================================================
+print("--- Class 继承 ---")
+class Dog extends Animal {
+  constructor(name) {
+    super(name, "woof")
+  }
+  fetch(item) {
+    print(this.name + " fetches " + item)
+  }
+}
+
+let rex = new Dog("Rex")
+rex.speak()
+rex.fetch("ball")
+print("rex.name:", rex.name)
+
+// ============================================================
+// 21. Class 多层继承
+// ============================================================
+print("--- Class 多层继承 ---")
+class Robot {
+  constructor(id) {
+    this.id = id
+  }
+  beep() {
+    print("Robot " + str(this.id) + " beeps")
+  }
+}
+
+class SmartRobot extends Robot {
+  constructor(id, name) {
+    super(id)
+    this.name = name
+  }
+  greet() {
+    print("Hello, I am " + this.name)
+  }
+}
+
+class SuperRobot extends SmartRobot {
+  constructor(id, name, power) {
+    super(id, name)
+    this.power = power
+  }
+  showPower() {
+    print(this.name + " has power level " + str(this.power))
+  }
+}
+
+let bot = new SuperRobot(42, "Optimus", 9000)
+bot.beep()
+bot.greet()
+bot.showPower()

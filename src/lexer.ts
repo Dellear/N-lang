@@ -2,6 +2,7 @@ export enum TT {
   NUM, STR, IDENT, TRUE, FALSE, NULL,
   LET, FN, RETURN, IF, ELSE, WHILE, FOR, IN,
   BREAK, CONTINUE, TYPEOF,
+  CLASS, EXTENDS, NEW, SUPER, THIS,
   PLUS, MINUS, STAR, SLASH, MOD,
   EQ, EQEQ, NEQ, LT, GT, LTE, GTE,
   BANG, AND, OR,
@@ -14,13 +15,13 @@ export enum TT {
 
 export interface Token { type: TT; val: string; line: number }
 
-const KW: Record<string, TT> = {
-  let: TT.LET, fn: TT.FN, return: TT.RETURN,
-  if: TT.IF, else: TT.ELSE, while: TT.WHILE,
-  for: TT.FOR, in: TT.IN,
-  break: TT.BREAK, continue: TT.CONTINUE, typeof: TT.TYPEOF,
-  true: TT.TRUE, false: TT.FALSE, null: TT.NULL
-}
+const KW: Record<string, TT> = Object.create(null)
+KW['let'] = TT.LET; KW['fn'] = TT.FN; KW['return'] = TT.RETURN
+KW['if'] = TT.IF; KW['else'] = TT.ELSE; KW['while'] = TT.WHILE
+KW['for'] = TT.FOR; KW['in'] = TT.IN
+KW['break'] = TT.BREAK; KW['continue'] = TT.CONTINUE; KW['typeof'] = TT.TYPEOF
+KW['class'] = TT.CLASS; KW['extends'] = TT.EXTENDS; KW['new'] = TT.NEW; KW['super'] = TT.SUPER; KW['this'] = TT.THIS
+KW['true'] = TT.TRUE; KW['false'] = TT.FALSE; KW['null'] = TT.NULL
 
 export function lex(src: string): Token[] {
   const tokens: Token[] = []

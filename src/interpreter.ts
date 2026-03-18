@@ -5,7 +5,9 @@ class NObject { constructor(public props: Map<string, Value>) {} }
 class NMath {}
 class NDateCtor {}
 class NDate { constructor(public value: Date) {} }
-type Value = number | string | boolean | null | NFunc | NArray | NObject | NMath | NDateCtor | NDate
+class NClass { constructor(public name: string, public parent: NClass | null, public methods: Map<string, { params: string[]; body: Node[] }>, public env: Env) {} }
+class NInstance { constructor(public klass: NClass, public props: Map<string, Value>) {} }
+type Value = number | string | boolean | null | NFunc | NArray | NObject | NMath | NDateCtor | NDate | NClass | NInstance
 interface NFunc { params: string[]; body: Node[]; env: Env }
 class ReturnSignal { constructor(public value: Value) {} }
 class BreakSignal {}
@@ -38,6 +40,8 @@ function display(v: Value): string {
   if (v instanceof NMath) return '[Math]'
   if (v instanceof NDateCtor) return '[Date]'
   if (v instanceof NDate) return v.value.toISOString()
+  if (v instanceof NClass) return `[Class ${v.name}]`
+  if (v instanceof NInstance) return `[${v.klass.name} instance]`
   if (typeof v === 'object') return '<fn>'
   return String(v)
 }
@@ -67,6 +71,15 @@ function dateTimestamp(value: Value): number | null {
 export function interpret(program: Node, env?: Env) {
   const global = env ?? new Env()
 
+  function findMethod(klass: NClass | null, name: string): { params: string[]; body: Node[]; env: Env } | null {
+    if (!klass) return null
+    if (klass.methods.has(name)) {
+      const method = klass.methods.get(name)!
+      return { params: method.params, body: method.body, env: klass.env }
+    }
+    return findMethod(klass.parent, name)
+  }
+
   function callFn(fn: NFunc, args: Value[]): Value {
     const local = new Env(fn.env)
     fn.params.forEach((p, i) => local.def(p, args[i] ?? null))
@@ -81,6 +94,22 @@ export function interpret(program: Node, env?: Env) {
   }
 
   function callMethod(obj: Value, method: string, args: Value[]): Value {
+    if (obj instanceof NInstance) {
+      const methodDef = findMethod(obj.klass, method)
+      if (!methodDef) throw new Error(`${obj.klass.name} has no method '${method}'`)
+      const local = new Env(methodDef.env)
+      local.def('this', obj)
+      local.def('__class__', obj.klass)
+      methodDef.params.forEach((p, i) => local.def(p, args[i] ?? null))
+      try {
+        let result: Value = null
+        for (const s of methodDef.body) result = exec(s, local)
+        return result
+      } catch (e) {
+        if (e instanceof ReturnSignal) return e.value
+        throw e
+      }
+    }
     if (typeof obj === 'string') {
       switch (method) {
         case 'len': return obj.length
@@ -239,6 +268,7 @@ export function interpret(program: Node, env?: Env) {
         const obj = exec(node.obj, env)
         const val = exec(node.value, env)
         if (obj instanceof NObject) { obj.props.set(node.prop, val); return val }
+        if (obj instanceof NInstance) { obj.props.set(node.prop, val); return val }
         throw new Error('Member assignment only supported on objects')
       }
       case 'Index': {
@@ -256,6 +286,7 @@ export function interpret(program: Node, env?: Env) {
           if (obj instanceof NArray) return obj.items.length
         }
         if (obj instanceof NObject) return obj.props.get(node.prop) ?? null
+        if (obj instanceof NInstance) return obj.props.get(node.prop) ?? null
         if (obj instanceof NMath) {
           if (node.prop === 'PI') return Math.PI
           if (node.prop === 'E') return Math.E
@@ -284,6 +315,34 @@ export function interpret(program: Node, env?: Env) {
       case 'Fn': {
         const fn: NFunc = { params: node.params, body: node.body, env }
         env.def(node.name, fn); return fn
+      }
+      case 'Class': {
+        const parent = node.parent ? env.get(node.parent) as NClass : null
+        const methods = new Map<string, { params: string[]; body: Node[] }>()
+        for (const m of node.methods) {
+          methods.set(m.name, { params: m.params, body: m.body })
+        }
+        const klass = new NClass(node.name, parent, methods, env)
+        env.def(node.name, klass)
+        return klass
+      }
+      case 'New': {
+        const klass = exec(node.className, env) as NClass
+        const instance = new NInstance(klass, new Map())
+        const ctor = findMethod(klass, 'constructor')
+        if (ctor) {
+          const args = node.args.map(a => exec(a, env))
+          const local = new Env(ctor.env)
+          local.def('this', instance)
+          local.def('__class__', klass)
+          ctor.params.forEach((p, i) => local.def(p, args[i] ?? null))
+          try {
+            for (const s of ctor.body) exec(s, local)
+          } catch (e) {
+            if (!(e instanceof ReturnSignal)) throw e
+          }
+        }
+        return instance
       }
       case 'Return': throw new ReturnSignal(node.value ? exec(node.value, env) : null)
       case 'Break': throw new BreakSignal()
@@ -335,6 +394,8 @@ export function interpret(program: Node, env?: Env) {
           if (v instanceof NArray) return 'array'
           if (v instanceof NObject) return 'object'
           if (v instanceof NDate) return 'date'
+          if (v instanceof NClass) return 'class'
+          if (v instanceof NInstance) return 'object'
           if (typeof v === 'object') return 'function'
           return typeof v
         }
@@ -370,8 +431,28 @@ export function interpret(program: Node, env?: Env) {
       }
       case 'Call': {
         if (node.callee.kind === 'Ident') {
-          const args = node.args.map(a => exec(a, env))
           const name = node.callee.name
+          if (name === 'super') {
+            const args = node.args.map(a => exec(a, env))
+            const instance = env.get('this') as NInstance
+            const currentClass = env.get('__class__') as NClass
+            const parentClass = currentClass.parent
+            if (!parentClass) throw new Error('super() called but no parent class')
+            const ctor = findMethod(parentClass, 'constructor')
+            if (ctor) {
+              const local = new Env(ctor.env)
+              local.def('this', instance)
+              local.def('__class__', parentClass)
+              ctor.params.forEach((p, i) => local.def(p, args[i] ?? null))
+              try {
+                for (const s of ctor.body) exec(s, local)
+              } catch (e) {
+                if (!(e instanceof ReturnSignal)) throw e
+              }
+            }
+            return null
+          }
+          const args = node.args.map(a => exec(a, env))
           if (name === 'print') { console.log(args.map(display).join(' ')); return null }
           if (name === 'Date') return createDate(args)
           if (name === 'len') {

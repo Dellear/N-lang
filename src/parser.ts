@@ -39,6 +39,32 @@ export function parse(tokens: Token[]): Node {
       eat(TT.RPAREN)
       return { kind: 'Fn', name, params, body: parseBlock() }
     }
+    if (t.type === TT.CLASS) {
+      eat()
+      const name = eat(TT.IDENT).val
+      let parent: string | null = null
+      if (peek().type === TT.EXTENDS) {
+        eat()
+        parent = eat(TT.IDENT).val
+      }
+      eat(TT.LBRACE); skip()
+      const methods: { name: string; params: string[]; body: Node[] }[] = []
+      while (peek().type !== TT.RBRACE && peek().type !== TT.EOF) {
+        const methodName = eat(TT.IDENT).val
+        eat(TT.LPAREN)
+        const params: string[] = []
+        while (peek().type !== TT.RPAREN) {
+          params.push(eat(TT.IDENT).val)
+          if (peek().type === TT.COMMA) eat()
+        }
+        eat(TT.RPAREN)
+        const body = parseBlock()
+        methods.push({ name: methodName, params, body })
+        skip()
+      }
+      eat(TT.RBRACE)
+      return { kind: 'Class', name, parent, methods }
+    }
     if (t.type === TT.RETURN) {
       eat()
       const value = peek().type === TT.NEWLINE || peek().type === TT.RBRACE ? null : parseExpr()
@@ -177,6 +203,20 @@ export function parse(tokens: Token[]): Node {
 
   function parsePrimary(): Node {
     const t = peek()
+    if (t.type === TT.NEW) {
+      eat()
+      const className = parsePrimary()
+      eat(TT.LPAREN)
+      const args: Node[] = []
+      while (peek().type !== TT.RPAREN) {
+        args.push(parseExpr())
+        if (peek().type === TT.COMMA) eat()
+      }
+      eat(TT.RPAREN)
+      return { kind: 'New', className, args }
+    }
+    if (t.type === TT.THIS) { eat(); return { kind: 'Ident', name: 'this' } }
+    if (t.type === TT.SUPER) { eat(); return { kind: 'Ident', name: 'super' } }
     if (t.type === TT.FN) {
       eat(); eat(TT.LPAREN)
       const params: string[] = []
