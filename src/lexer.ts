@@ -34,8 +34,10 @@ export function lex(src: string): Token[] {
     if (c === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue }
 
     if (c === '`') {
+      const startLine = line
       let raw = ''; i++
       while (i < src.length && src[i] !== '`') {
+        if (src[i] === '\n') line++
         if (src[i] === '\\') {
           i++
           raw += src[i] === 'n' ? '\n' : src[i] === 't' ? '\t' : src[i]
@@ -44,16 +46,19 @@ export function lex(src: string): Token[] {
         }
         i++
       }
+      if (i >= src.length) throw new Error(`Unclosed template literal at line ${startLine}`)
       i++; tokens.push({ type: TT.TEMPLATE, val: raw, line }); continue
     }
 
     if (c === '"') {
+      const startLine = line
       let s = ''; i++
       while (i < src.length && src[i] !== '"') {
         if (src[i] === '\\') { i++; s += src[i] === 'n' ? '\n' : src[i] === 't' ? '\t' : src[i] }
         else s += src[i]
         i++
       }
+      if (i >= src.length) throw new Error(`Unclosed string at line ${startLine}`)
       i++; tokens.push({ type: TT.STR, val: s, line }); continue
     }
 
