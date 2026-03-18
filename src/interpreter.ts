@@ -11,7 +11,7 @@ class ReturnSignal { constructor(public value: Value) {} }
 class BreakSignal {}
 class ContinueSignal {}
 
-class Env {
+export class Env {
   vars = new Map<string, Value>()
   constructor(public parent?: Env) {}
   get(name: string): Value {
@@ -64,8 +64,8 @@ function dateTimestamp(value: Value): number | null {
   return value instanceof NDate ? value.value.getTime() : null
 }
 
-export function interpret(program: Node) {
-  const global = new Env()
+export function interpret(program: Node, env?: Env) {
+  const global = env ?? new Env()
 
   function callFn(fn: NFunc, args: Value[]): Value {
     const local = new Env(fn.env)
